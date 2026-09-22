@@ -50,7 +50,9 @@ quick-reference — see `references/`.
 
 - Hermes Agent with the `memory-zvec` plugin installed
   ([kkk-hermes-memory-zvec](https://github.com/kuntao2011/kkk-hermes-memory-zvec))
-- [Ollama](https://ollama.com) running with `bge-m3` (embeddings)
+- An **embedding model** served over an Ollama-compatible API (`/api/embed`):
+  local [Ollama](https://ollama.com) with `bge-m3`, or any hosted/online
+  endpoint implementing the same API (point the plugin's `base_url` at it)
 - Hermes venv Python (the `zvec` package is installed there)
 
 ## Quick start
@@ -58,7 +60,9 @@ quick-reference — see `references/`.
 Read `SKILL.md` — it is a step-by-step playbook. Typical flow:
 
 1. `check_ollama.sh` — verify the embedding backend
-2. Deploy the plugin across profiles (cross-profile `rsync` pattern)
+2. Install the plugin in your profile (single-profile is the default path;
+   rolling it out across a multi-profile fleet is an optional pattern — SKILL.md
+   Step 2)
 3. `migrate-lancedb-to-zvec.py` — migrate memory data per profile
 4. `verify-plugin-tools.py` — 12-point functional verification
 5. `post-migration-repair.py` + `check_all_profiles.py` — repair & fleet health
