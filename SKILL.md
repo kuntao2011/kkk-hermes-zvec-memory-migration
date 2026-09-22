@@ -99,7 +99,7 @@ HERMES_HOME（有 profile 时）        = ~/.hermes/profiles/<profile_name>/
 > 多个 profile 的 config.yaml 中看起来有相同的 `$HERMES_HOME/...` 路径，
 > 但运行时解析结果**不同**。验证方法：
 > ```bash
-> for p in default chip_expert financial_expert health_manager zunhunfan; do
+> for p in default <你的profile列表>; do
 >   pid=$(pgrep -f "hermes.*$p" 2>/dev/null | head -1)
 >   [ -n "$pid" ] && cat /proc/$pid/environ 2>/dev/null | tr '\0' '\n' | grep HERMES_HOME
 > done
@@ -173,7 +173,7 @@ done
 **逐 profile 验证「发现」**（不能只看文件存在）：
 
 ```bash
-for prof in chip_expert financial_expert health_manager trading_bot zunhunfan; do
+for prof in <你的profile列表>; do
   HERMES_HOME="$HOME/.hermes/profiles/$prof" ~/.hermes/hermes-agent/venv/bin/python -c "
 import sys; sys.path.insert(0, '/home/<user>/.hermes/hermes-agent')
 from plugins.memory import find_provider_dir
@@ -348,7 +348,7 @@ for field_name in ["role", "session_id", "created_at"]:
 > **快速验证脚本**：可直接运行 [`scripts/verify-plugin-tools.py`](scripts/verify-plugin-tools.py)，
 > 自动执行全部 8 项检查（通过 Hermes 框架加载插件，无需关闭 gateway）：
 > ```bash
-> HERMES_PROFILE=zunhunfan ~/.hermes/hermes-agent/venv/bin/python3 \
+> HERMES_PROFILE=<profile> ~/.hermes/hermes-agent/venv/bin/python3 \
 >   ~/.hermes/skills/kkk-zvec-vector-db-migration/scripts/verify-plugin-tools.py
 > ```
 >
@@ -683,7 +683,7 @@ grep -A10 'plugins:' ~/.hermes/config.yaml ~/.hermes/profiles/*/config.yaml | gr
 default 会解析到不存在的 `~/.hermes/profiles/default/`。
 **正确逻辑**：
 ```python
-PROFILE = os.environ.get("HERMES_PROFILE", "zunhunfan")
+PROFILE = os.environ.get("HERMES_PROFILE", "default")
 if PROFILE == "default":
     HERMES_HOME = Path.home() / ".hermes"
 else:
@@ -944,7 +944,7 @@ _hermes_user_memory.memory-zvec: ZvecMemoryProvider initialized — model=bge-m3
 如果 gateway 在驱逐后**正常关闭**，idle agents 会被 `_stop_impl` 第 6740-6755 行正确清理。
 **唯一风险**：如果 gateway 在驱逐后、正常关闭前被 SIGKILL，这些 idle agents 的 on_session_end 不会被调用。
 
-**实测后果链（2026-09-14 trading_bot 确诊）——驱逐后锁泄漏 → 下一个新会话 _coll=None**：
+**实测后果链（2026-09-14 <profile> 确诊）——驱逐后锁泄漏 → 下一个新会话 _coll=None**：
 被驱逐 agent 的 provider 实例被 gateway 内部结构持强引用，GC 不回收 → rw 锁一直被占。下一个新会话
 initialize：`lock detected → GC+retry 失败 → read-only 也被拒（读写互斥）→ _coll=None`，但日志**仍打**
 `Memory provider 'memory-zvec' activated`（假阳性）。之后所有 vec_memory_* 报 `database not yet initialized`，
@@ -957,7 +957,7 @@ profile 路径同名必误匹配）；② 持锁者 = 本 profile gateway 自身
 
 ### 16. Ollama 嵌入模型名漂移导致自动记忆静默断流（‼️ 2026-09-07 发现）
 **症状**：配置 `plugins.memory-zvec.embedding_model` 与 Ollama 实际模型 tag 不一致时，`sync_turn`/`on_session_end` 的 embedding 调用全部失败且**不产生醒目报错**（skill 日志有 `session_end batch store failed`，但 gateway.log 中 grep "not found" 计数为 0，极易漏诊）。表现为 Zvec 中 turn/session_end 条目在某日期后断流，而 collection 本身健康（stats 正常、手动写入正常）。
-**实测案例**（financial_expert）：8/22 Ollama 侧模型 tag 从 `bge-m3:567m` 变为 `bge-m3:latest`（`ollama list` 只显示 `bge-m3:latest`），config.yaml 仍写 `bge-m3:567m` → `/api/embed` 返回 `{"error": "model not found"}` → 8/22 之后 turn/session_end 自动条目为 0（之前 7 月有 195 条、8 月上旬 32 条），持续 16 天未被发现。
+**实测案例**（<profile>）：8/22 Ollama 侧模型 tag 从 `bge-m3:567m` 变为 `bge-m3:latest`（`ollama list` 只显示 `bge-m3:latest`），config.yaml 仍写 `bge-m3:567m` → `/api/embed` 返回 `{"error": "model not found"}` → 8/22 之后 turn/session_end 自动条目为 0（之前 7 月有 195 条、8 月上旬 32 条），持续 16 天未被发现。
 **诊断方法**（三步，2 分钟）：
 ```bash
 # 1. 对比配置与实际
@@ -1060,7 +1060,7 @@ atexit.register(_drain_pending_writes)
 所以每个 cron 任务的期望值是 **1 条 turn + 1 条 session_end**，不是"每条消息一条"。
 用"最近记录时间"判断写入是否正常时，必须区分 gateway 会话（多轮）与 cron 任务（单轮）。
 
-### 19. 活的 idle-cached agent 持锁 → GC+retry 失效，新会话永久 _coll=None（‼️ 2026-09-14 health_manager 实测）
+### 19. 活的 idle-cached agent 持锁 → GC+retry 失效，新会话永久 _coll=None（‼️ 2026-09-14 <profile> 实测）
 
 **症状**：gateway 同进程内，A 会话 agent 先 `zvec.open()` 成功拿 rw 锁并进入 **idle cache（仍被强引用、未被 GC）**；
 B 会话 agent `initialize()` 走 `self.shutdown()`（只清自己的 `_coll`）+ `gc.collect()` + retry，

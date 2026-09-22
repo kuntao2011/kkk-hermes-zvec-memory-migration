@@ -17,7 +17,7 @@ Layer 4: 运行时层 → 日志中的初始化/激活序列
 
 ```bash
 echo "=== default ===" && grep -A6 '^memory:' ~/.hermes/config.yaml 2>/dev/null
-for p in chip_expert financial_expert health_manager zunhunfan; do
+for p in <你的profile列表>; do
   echo "=== $p ==="
   grep -A6 '^memory:' ~/.hermes/profiles/$p/config.yaml 2>/dev/null || echo "NO CONFIG"
 done
@@ -28,7 +28,7 @@ done
 同时检查 `plugins:` 段下存在 `memory-zvec` 配置块（zvec_dir / embedding_model / vector_dim 等）：
 
 ```bash
-for p in chip_expert financial_expert health_manager zunhunfan; do
+for p in <你的profile列表>; do
   echo "=== $p plugins ==="
   grep -A10 '^plugins:' ~/.hermes/profiles/$p/config.yaml 2>/dev/null
 done
@@ -41,7 +41,7 @@ done
 ```bash
 echo "=== memory-zvec plugin ===" && ls -la ~/.hermes/plugins/memory-zvec/ | head -5
 echo ""
-for p in chip_expert financial_expert health_manager zunhunfan; do
+for p in <你的profile列表>; do
   link="$HOME/.hermes/profiles/$p/plugins/memory-zvec"
   if [ -L "$link" ] && [ -d "$(readlink -f "$link")" ]; then
     echo "✅ $p: symlink OK → $(readlink "$link")"
@@ -67,7 +67,7 @@ stat -c '%y %n' ~/.hermes/plugins/memory-zvec/__init__.py
 echo "=== default ===" && du -sh ~/.hermes/记忆数据库/zvec_memory/ 2>/dev/null && \
   ls -lt ~/.hermes/记忆数据库/zvec_memory/memories/manifest.* 2>/dev/null | head -1
 
-for p in chip_expert financial_expert health_manager zunhunfan; do
+for p in <你的profile列表>; do
   dir="$HOME/.hermes/profiles/$p/记忆数据库/zvec_memory/"
   if [ -d "$dir" ]; then
     echo "=== $p ==="
@@ -89,8 +89,8 @@ manifest 的最后修改时间是判断该 profile 是否有最近记忆写入�
 读取各 profile 的 agent.log，检查 memory-zvec 的初始化序列是否完整：
 
 ```bash
-for p in chip_expert financial_expert health_manager zunhunfan; do
-  if [ "$p" = "zunhunfan" ]; then
+for p in <你的profile列表>; do
+  if [ "$p" = "<profile>" ]; then
     logfile="$HOME/.hermes/profiles/$p/logs/agent.log"
   else
     logfile="$HOME/.hermes/profiles/$p/logs/agent.log"
@@ -132,10 +132,10 @@ done
 | Profile | 配置 | 插件 | 数据 | 运行时 | 结论 |
 |---------|------|------|------|--------|------|
 | default | ✅ | ✅ | ✅ 76MB/694条 | ✅ 正常 | ✅ |
-| chip_expert | ✅ | ✅ (旧代码) | ✅ 20MB | ⚠️ NameError → 只读 | 需重启 gateway |
-| financial_expert | ✅ | ✅ (旧代码) | ✅ 7.8MB | ⚠️ NameError → 只读 | 需重启 gateway |
-| health_manager | ✅ | ✅ | ✅ 19MB | ✅ 正常（新版代码） | ✅ |
-| zunhunfan | ✅ | ✅ | ✅ 6.0MB | ❓ 近期无对话 → 未激活 | 收到下条消息自动加载 |
+| <profile1> | ✅ | ✅ (旧代码) | ✅ 20MB | ⚠️ NameError → 只读 | 需重启 gateway |
+| <profile2> | ✅ | ✅ (旧代码) | ✅ 7.8MB | ⚠️ NameError → 只读 | 需重启 gateway |
+| <profile3> | ✅ | ✅ | ✅ 19MB | ✅ 正常（新版代码） | ✅ |
+| <profile4> | ✅ | ✅ | ✅ 6.0MB | ❓ 近期无对话 → 未激活 | 收到下条消息自动加载 |
 
 ### 修复后验证：重启 gateway
 

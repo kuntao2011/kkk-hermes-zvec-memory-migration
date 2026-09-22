@@ -20,7 +20,7 @@ ls ~/.hermes/profiles/<name>/lance_memory/memories.lance/
 # 正常 (default profile, 升级后):
 #   _deletions  _indices  _transactions  _versions  data
 
-# 故障 (fe/zunhunfan):
+# 故障 (受影响的 profile):
 #   data   ← 只有 data
 
 # 2. 看 data/ 目录里有没有 .lance 文件
@@ -114,8 +114,8 @@ assert tbl.list_indices()  # 有 FTS 索引
 
 | Profile | 修复前 rows | 修复后 rows | 时间 |
 |---|---|---|---|
-| financial_expert | 0 (Table not found) | 325 | 0.42s |
-| zunhunfan | 0 (Table not found) | 237 | 0.10s |
+| <profileA> | 0 (Table not found) | 325 | 0.42s |
+| <profileB> | 0 (Table not found) | 237 | 0.10s |
 
 ## Pitfalls
 

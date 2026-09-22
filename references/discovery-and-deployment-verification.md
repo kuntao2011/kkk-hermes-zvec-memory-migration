@@ -51,7 +51,7 @@ ignored 文件不算脏，因此也不会触发「删除未跟踪文件」的树
 
 ```bash
 # 第 1 层：发现（最容易被跳过，也是本次事故的真因）
-for prof in default chip_expert financial_expert health_manager zunhunfan; do
+for prof in default <你的profile列表>; do
   if [ "$prof" = "default" ]; then HH="$HOME/.hermes"; else HH="$HOME/.hermes/profiles/$prof"; fi
   HERMES_HOME="$HH" <venv>/python -c "
 from plugins.memory import list_memory_provider_names, find_provider_dir

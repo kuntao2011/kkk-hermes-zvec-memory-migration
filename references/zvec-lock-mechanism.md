@@ -29,9 +29,9 @@
 |------|------|
 | 2026-09-10 | in-tree 补丁 optimize_fix（热路径 HNSW 摊销优化） |
 | 2026-09-11 | in-tree 补丁 shutdown race 修复（线程跟踪 + atexit 排水）——但排水没挂到 initialize，race 未根治 |
-| 2026-09-14 14:07 | chip_expert 会话初始化撞上一会话收尾批写，**整会话记忆静默失效**（journal 特征：同秒 WARNING "still locked" + ERROR "failed to open (read-only)"） |
+| 2026-09-14 14:07 | <profile> 会话初始化撞上一会话收尾批写，**整会话记忆静默失效**（journal 特征：同秒 WARNING "still locked" + ERROR "failed to open (read-only)"） |
 | 2026-09-14 23:00 | 插件迁出 hermes-agent 树 → `~/.hermes/plugins/memory-zvec`（用户级，update 免疫），6 个 config 指 `memory.provider: memory-zvec` |
-| 2026-09-14 深夜 | 发现 dashboard（root profile）web 端**内嵌 profile 聊天**（`web_server_chat.py` 支持 `profile=`，HERMES_HOME 指向子 profile）持 zunhunfan 锁 **35 小时**（fd 时间戳实锤）——从此引出空闲释放 |
+| 2026-09-14 深夜 | 发现 dashboard（root profile）web 端**内嵌 profile 聊天**（`web_server_chat.py` 支持 `profile=`，HERMES_HOME 指向子 profile）持 <profile> 锁 **35 小时**（fd 时间戳实锤）——从此引出空闲释放 |
 | 2026-09-15 | 对抗审查修复 8 项（v1.3.1），profile 符号链接改实体副本 |
 
 ### v1.1.0 — 背靠背会话 race 根治
